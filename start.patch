@@ -1,0 +1,11 @@
+--- a/start.lua	2024-09-23 12:10:28.165644302 +0100
++++ b/start.lua	2024-09-23 13:04:12.690395513 +0100
+@@ -18,7 +18,7 @@
+ USERDIR = (system.get_file_info(EXEDIR .. PATHSEP .. 'user') and (EXEDIR .. PATHSEP .. 'user'))
+        or os.getenv("LITE_USERDIR")
+        or ((os.getenv("XDG_CONFIG_HOME") and os.getenv("XDG_CONFIG_HOME") .. PATHSEP .. "lite-xl"))
+-       or (HOME and (HOME .. PATHSEP .. '.config' .. PATHSEP .. 'lite-xl'))
++       or (HOME and (HOME .. PATHSEP .. '.config' .. PATHSEP .. 'lite-xl-pass'))
+
+ package.path = DATADIR .. '/?.lua;'
+ package.path = DATADIR .. '/?/init.lua;' .. package.path

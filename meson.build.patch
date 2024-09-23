@@ -1,0 +1,24 @@
+--- a/meson.build	2024-09-23 14:17:26.144167259 +0100
++++ b/meson.build	2024-09-23 14:24:31.141243492 +0100
+@@ -226,6 +226,7 @@
+
+ install_subdir('docs/api' , install_dir : lite_datadir, strip_directory: true)
+ install_subdir('data/core' , install_dir : lite_datadir, exclude_files : 'start.lua')
++install_subdir('data/pass' , install_dir : lite_datadir, exclude_files : 'start.lua')
+ foreach data_module : ['fonts', 'plugins', 'colors']
+     install_subdir(join_paths('data', data_module), install_dir : lite_datadir)
+ endforeach
+@@ -237,6 +238,13 @@
+     install_dir : join_paths(lite_datadir, 'core'),
+ )
+
++configure_file(
++    input : 'data/pass/start.lua',
++    output : 'start.lua',
++    configuration : conf_data,
++    install_dir : join_paths(lite_datadir, 'pass'),
++)
++
+ if not get_option('source-only')
+     subdir('src')
+     subdir('scripts')

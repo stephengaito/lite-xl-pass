@@ -1,0 +1,11 @@
+--- a/main.c	2024-09-23 12:10:28.193644900 +0100
++++ b/main.c	2024-09-23 13:02:08.543748968 +0100
+@@ -199,7 +199,7 @@
+     "  HOME = os.getenv('" LITE_OS_HOME "')\n"
+     "  local exedir = match(EXEFILE, '^(.*)" LITE_PATHSEP_PATTERN LITE_NONPATHSEP_PATTERN "$')\n"
+     "  local prefix = os.getenv('LITE_PREFIX') or match(exedir, '^(.*)" LITE_PATHSEP_PATTERN "bin$')\n"
+-    "  dofile((MACOS_RESOURCES or (prefix and prefix .. '/share/lite-xl' or exedir .. '/data')) .. '/core/start.lua')\n"
++    "  dofile((MACOS_RESOURCES or (prefix and prefix .. '/share/lite-xl' or exedir .. '/data')) .. '/pass/start.lua')\n"
+     "  core = require(os.getenv('LITE_XL_RUNTIME') or 'core')\n"
+     "  core.init()\n"
+     "  core.run()\n"
