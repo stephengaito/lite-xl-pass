@@ -93,6 +93,119 @@ end
 core.init = wrappedInit
 
 ------------------------------------------------------------------------
+-- extend the DocView ContextMenu
+
+local ContextMenu = require "core.contextmenu"
+local menu = require "plugins.contextmenu"
+
+local function doc()
+  return core.active_view.doc
+end
+
+local function getPassword()
+  return doc().lines[1]
+end
+
+local function findValueForKey(aKey)
+  for _, line in ipairs(doc().lines) do
+    local startIndx, endIndx = string.find(line, aKey..':')
+    if startIndx then
+      aValue = line:sub(endIndx, -1)
+      aValue = aValue:gsub("\n", "")
+      aValue = aValue:gsub("\r", "")
+      return aValue
+    end
+  end
+  return nil
+end
+
+local function getUserName()
+  return findValueForKey('UserName')
+end
+
+local function getURL()
+  return findValueForKey('URL')
+end
+
+-- see /usr/lib/password-store/extensions/otp.bash
+-- for details (otp_parse_uri)
+-- see also the oathtool
+--
+local function getOTP()
+  return findValueForKey('otpauth')
+end
+
+local command = require "core.command"
+
+local DocView = require "core.docview"
+
+-- see data/core/command.lua :: command.generate_predicate
+--
+local function checkGPG(...)
+  local addMenu = false
+  if core.active_view:extends(DocView) then
+    if string.find(doc().filename, "%.gpg$") then
+      addMenu = true
+    end
+  end
+  return addMenu, core.active_view, ...
+end
+
+local xselCmd = "xsel -i -t 45000 -b"
+local otpCmd  = "oathtool --totp -"
+
+command.add(checkGPG, {
+	["pass:copy-password"] = function()
+	  local aPassword = getPassword()
+	  if aPassword then
+      local fp = io.popen(xselCmd, "w")
+      if fp then
+        fp:write(aPassword)
+      end
+    end
+	end,
+	["pass:copy-user-name"] = function()
+	  local aUserName = getUserName()
+	  if aUserName then
+      local fp = io.popen(xselCmd, "w")
+      if fp then
+        fp:write(aUserName)
+      end
+    end
+	end,
+	["pass:copy-url"] = function()
+	  local aURL = getURL()
+	  if aURL then
+      local fp = io.popen(xselCmd, "w")
+      if fp then
+        fp:write(aURL)
+      end
+    end
+	end,
+	["pass:copy-otp"] = function()
+	  local anOTP = getOTP()
+	  if anOTP then
+      local fp = io.popen(xselCmd, "w")
+      if fp then
+        fp:write(anOTP)
+      end
+    end
+	end
+})
+
+-- could use keymap.add to add these commands to keys
+
+local cmds = {
+  ContextMenu.DIVIDER,
+	{ text = "Copy password", command = "pass:copy-password" },
+	{ text = "Copy username", command = "pass:copy-user-name" },
+	{ text = "Copy URL",      command = "pass:copy-url" },
+	{ text = "Copy OTP",      command = "pass:copy-otp" }
+}
+
+menu:register(checkGPG, cmds)
+
+------------------------------------------------------------------------
 -- implement any required pass initializations
 
 function pass.init()

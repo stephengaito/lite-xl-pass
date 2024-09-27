@@ -1,3 +1,4 @@
 #!/bin/sh
 
-cp -R pass lite-xl-src/lite-xl/share/lite-xl
+cp -R pass lite-xl-src/lite-xl/$HOME/.local/lite-xl-pass/share/lite-xl
+cp -R pass $HOME/.local/lite-xl-pass/share/lite-xl
