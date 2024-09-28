@@ -151,16 +151,33 @@ local function checkGPG(...)
   return addMenu, core.active_view, ...
 end
 
-local xselCmd = "xsel -i -t 45000 -b"
-local otpCmd  = "oathtool --totp -"
+local style = require "core.style"
+
+local function tellUser(aMessage)
+  if core.status_view then
+    local s = style.log["INFO"]
+    core.status_view:show_message(s.icon, s.color, aMessage)
+  else
+    print(aMessage)
+  end
+  print(aMessage)
+end
+
+local xselCopyCmd  = "/usr/bin/xsel -i -t 40000 -b"
+local xselClearCmd = "/usr/bin/xsel -c -b"
+local otpCmd       = "oathtool --totp -"
 
 command.add(checkGPG, {
 	["pass:copy-password"] = function()
 	  local aPassword = getPassword()
 	  if aPassword then
-      local fp = io.popen(xselCmd, "w")
+      local fp = io.popen(xselCopyCmd, "w")
       if fp then
+        tellUser("Copied password to clipboard")
         fp:write(aPassword)
+        fp:close()
+      else
+        tellUser("No password found in Password Entry")
       end
     end
 	end,
@@ -169,7 +186,10 @@ command.add(checkGPG, {
 	  if aUserName then
       local fp = io.popen(xselCmd, "w")
       if fp then
+        tellUser("Copied UserName")
         fp:write(aUserName)
+      else
+        tellUser("No UserName found in Password Entry")
       end
     end
 	end,
@@ -178,7 +198,10 @@ command.add(checkGPG, {
 	  if aURL then
       local fp = io.popen(xselCmd, "w")
       if fp then
+        tellUser("Copied URL")
         fp:write(aURL)
+      else
+        tellUser("No URL found in Password Entry")
       end
     end
 	end,
@@ -187,7 +210,10 @@ command.add(checkGPG, {
 	  if anOTP then
       local fp = io.popen(xselCmd, "w")
       if fp then
+        tellUser("Copies TOTP")
         fp:write(anOTP)
+      else
+        tellUser("otpauth not found in Password Entry")
       end
     end
 	end
