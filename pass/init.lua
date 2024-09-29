@@ -41,6 +41,7 @@ local load = function(self, filename)
 end
 Doc.load = load
 
+local origSave = Doc.save
 local save = function(self, filename, abs_filename)
   if not filename then
     assert(self.filename, "no filename set to default to")
@@ -49,7 +50,12 @@ local save = function(self, filename, abs_filename)
   else
     assert(self.filename or abs_filename, "calling save on unnamed doc without absolute path")
   end
-  local fp = assert(io.popen("pass insert " .. filename, "wb"))
+  local startIndx, endIndx = string.find(filename, "%.gpg$")
+  if not startIndx then
+    return origSave(self, filename, abs_filename)
+  end
+  local passFileName = string.sub(filename, 1, startIndx-1)
+  local fp = assert(io.popen("pass insert -m -f " .. passFileName, "w"))
   for _, line in ipairs(self.lines) do
     if self.crlf then line = line:gsub("\n", "\r\n") end
     fp:write(line)
@@ -120,10 +126,14 @@ local function findValueForKey(aKey)
 end
 
 local function addKey(aKey)
-  if aKey == "password" then
-    table.insert(doc().lines, 1, '')
-  else
-    table.insert(doc().lines, aKey..': ')
+  local aValue = findValueForKey(aKey)
+  if not aValue then
+    if aKey == "password" then
+      doc():insert(1, 1, '')
+    else
+      local theDoc = doc()
+      theDoc:insert(#theDoc.lines+1, 1, '\n'..aKey..': ')
+    end
   end
 end
 
