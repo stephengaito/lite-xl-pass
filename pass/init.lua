@@ -119,6 +119,14 @@ local function findValueForKey(aKey)
   return nil
 end
 
+local function addKey(aKey)
+  if aKey == "password" then
+    table.insert(doc().lines, 1, '')
+  else
+    table.insert(doc().lines, aKey..': ')
+  end
+end
+
 local function getUserName()
   return findValueForKey('UserName')
 end
@@ -160,7 +168,7 @@ local function tellUser(aMessage)
   else
     print(aMessage)
   end
-  print(aMessage)
+  --print(aMessage)
 end
 
 local xselCopyCmd  = "/usr/bin/xsel -i -t 40000 -b"
@@ -177,8 +185,10 @@ command.add(checkGPG, {
         fp:write(aPassword)
         fp:close()
       else
-        tellUser("No password found in Password Entry")
+        tellUser("Could not copy Password to the clipboard")
       end
+    else
+      tellUser("No password found in Password Entry")
     end
 	end,
 	["pass:copy-user-name"] = function()
@@ -189,8 +199,10 @@ command.add(checkGPG, {
         tellUser("Copied UserName")
         fp:write(aUserName)
       else
-        tellUser("No UserName found in Password Entry")
+        tellUser("Could not copy UserName to the clipboard")
       end
+    else
+      tellUser("No UserName found in Password Entry")
     end
 	end,
 	["pass:copy-url"] = function()
@@ -201,8 +213,10 @@ command.add(checkGPG, {
         tellUser("Copied URL")
         fp:write(aURL)
       else
-        tellUser("No URL found in Password Entry")
+        tellUser("Could not copy URL to the clipboard")
       end
+    else
+      tellUser("No URL found in Password Entry")
     end
 	end,
 	["pass:copy-otp"] = function()
@@ -213,10 +227,26 @@ command.add(checkGPG, {
         tellUser("Copies TOTP")
         fp:write(anOTP)
       else
-        tellUser("otpauth not found in Password Entry")
+        tellUser("Could not copy the TOTP to the clipboard")
       end
+    else
+      tellUser("otpauth not found in Password Entry")
     end
-	end
+	end,
+	["pass:add-password"] = function()
+	  addKey('password')
+	end,
+	["pass:add-user-name"] = function()
+	  addKey('username')
+	end,
+	["pass:add-url"] = function()
+	  addKey('url')
+	end,
+	["pass:add-otp"] = function()
+	  addKey('otpauth')
+  end,
+	["pass:wrap-otp"] = function()
+  end
 })
 
 -- could use keymap.add to add these commands to keys
@@ -226,7 +256,13 @@ local cmds = {
 	{ text = "Copy password", command = "pass:copy-password" },
 	{ text = "Copy username", command = "pass:copy-user-name" },
 	{ text = "Copy URL",      command = "pass:copy-url" },
-	{ text = "Copy OTP",      command = "pass:copy-otp" }
+	{ text = "Copy OTP",      command = "pass:copy-otp" },
+  ContextMenu.DIVIDER,
+	{ text = "Add password", command = "pass:add-password" },
+	{ text = "Add username", command = "pass:add-user-name" },
+	{ text = "Add URL",      command = "pass:add-url" },
+	{ text = "Add OTP",      command = "pass:add-otp" },
+	{ text = "Wrap OTP",     command = "pass:wrap-otp" }
 }
 
 menu:register(checkGPG, cmds)
