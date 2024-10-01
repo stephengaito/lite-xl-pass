@@ -148,7 +148,7 @@ local function addKey(aKey)
     else
       local theValue = aKey..': '
       if aKey == 'otpauth' then
-        theValue = 'otpauth:type=totp&issuer=<issuer>&username=<username>&secret=<secrect>&period=30s&digits=6&counter=<counter>&algorithm=<algorithm>'
+        theValue = 'otpauth://totp/<issuer>:<username>?secret=<secrectInBase32>&period=30s&digits=6&algorithm=<SHA1|SHA256|SHA512>'
       end
       local theDoc = doc()
       theDoc:insert(#theDoc.lines+1, 1, '\n'..theValue)
@@ -192,34 +192,40 @@ end
 local function getOTP()
   local result = {}
   local otpUri = findValueForKey('otpauth')
+  if not otpUri then
+    tellUser("No otpauth found in password entry")
+    return result
+  end
+
   local parts = splitStr(otpUri, '%?')
   if #parts < 2 then
     tellUser("Could not parse otpauth... do you need to wrap it?")
     return result
   end
-  local startTotp, _ = string.find(parts[2], 'totp')
-  if not startTotp then
-    tellUser("Not a TOTP otpauth uri... can not deal with this uri")
-    return result
-  end
-  local type = 'totp'
+
+  local params = getParams(parts[2])
   if params['secret'] then
     result['secret'] = params['secret']
   end
-  local cmd = "oathtool -b "
+
+  local cmd      = "oathtool -b "
+
+  if params['digits'] then
+    cmd = cmd .. ' -d ' .. params['digits']
+  end
+
+  if params['period'] then
+    cmd = cmd .. ' -s ' .. params['period']
+  end
+
   if params['algorithm'] then
-    -- ....
-  end
-end
-
-local function wrapOTP()
-  local otpValue = findValueForKey('otpauth')
-  local paramIndx, _ = string.find(otpValue, "%?")
-  if paramIndx then
-    tellUser("otpauth already wrapped")
+    cmd = cmd .. '--totp=' ..  params['algorithm']
   else
-
+    cmd = cmd .. '--totp'
   end
+
+  result['cmd'] = cmd .. ' - '
+  return result
 end
 
 local command = require "core.command"
@@ -240,7 +246,6 @@ end
 
 local xselCopyCmd  = "/usr/bin/xsel -i -t 40000 -b"
 local xselClearCmd = "/usr/bin/xsel -c -b"
-local otpCmd       = "oathtool --totp -"
 
 command.add(checkGPG, {
 	["pass:copy-password"] = function()
@@ -288,16 +293,15 @@ command.add(checkGPG, {
 	end,
 	["pass:copy-otp"] = function()
 	  local anOTP = getOTP()
-	  if anOTP then
-      local fp = io.popen(xselCmd, "w")
+	  if anOTP['secret'] and anOTP['cmd'] then
+	    local otpCmd = anOTP['cmd'] .. ' | ' .. xselCopyCmd
+      local fp = io.popen(otpCmd, "w")
       if fp then
-        tellUser("Copies TOTP")
-        fp:write(anOTP)
+        tellUser("Copied TOTP")
+        fp:write(anOTP['secret'])
       else
         tellUser("Could not copy the TOTP to the clipboard")
       end
-    else
-      tellUser("otpauth not found in Password Entry")
     end
 	end,
 	["pass:add-password"] = function()
@@ -311,9 +315,6 @@ command.add(checkGPG, {
 	end,
 	["pass:add-otp"] = function()
 	  addKey('otpauth')
-  end,
-	["pass:wrap-otp"] = function()
-	  wrapOTP()
   end
 })
 
@@ -330,7 +331,6 @@ local cmds = {
 	{ text = "Add username", command = "pass:add-user-name" },
 	{ text = "Add URL",      command = "pass:add-url" },
 	{ text = "Add OTP",      command = "pass:add-otp" },
-	{ text = "Wrap OTP",     command = "pass:wrap-otp" }
 }
 
 menu:register(checkGPG, cmds)
