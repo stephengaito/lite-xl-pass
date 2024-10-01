@@ -99,6 +99,21 @@ end
 core.init = wrappedInit
 
 ------------------------------------------------------------------------
+-- provide some helper tools
+
+local style = require "core.style"
+
+local function tellUser(aMessage)
+  if core.status_view then
+    local s = style.log["INFO"]
+    core.status_view:show_message(s.icon, s.color, aMessage)
+  else
+    print(aMessage)
+  end
+  --print(aMessage)
+end
+
+------------------------------------------------------------------------
 -- extend the DocView ContextMenu
 
 local ContextMenu = require "core.contextmenu"
@@ -116,7 +131,7 @@ local function findValueForKey(aKey)
   for _, line in ipairs(doc().lines) do
     local startIndx, endIndx = string.find(line, aKey..':')
     if startIndx then
-      aValue = line:sub(endIndx, -1)
+      local aValue = line:sub(endIndx+1, -1)
       aValue = aValue:gsub("\n", "")
       aValue = aValue:gsub("\r", "")
       return aValue
@@ -131,8 +146,12 @@ local function addKey(aKey)
     if aKey == "password" then
       doc():insert(1, 1, '')
     else
+      local theValue = aKey..': '
+      if aKey == 'otpauth' then
+        theValue = 'otpauth:type=totp&issuer=<issuer>&username=<username>&secret=<secrect>&period=30s&digits=6&counter=<counter>&algorithm=<algorithm>'
+      end
       local theDoc = doc()
-      theDoc:insert(#theDoc.lines+1, 1, '\n'..aKey..': ')
+      theDoc:insert(#theDoc.lines+1, 1, '\n'..theValue)
     end
   end
 end
@@ -148,9 +167,59 @@ end
 -- see /usr/lib/password-store/extensions/otp.bash
 -- for details (otp_parse_uri)
 -- see also the oathtool
---
+-- see also:
+--   https://github.com/google/google-authenticator/wiki/Key-Uri-Format
+
+local function splitStr(aStr, aSep)
+  if aSep == nil then aSep = "%s" end
+  local result = {}
+  for aField in string.gmatch(aStr, "([^"..aSep.."]+)") do
+    table.insert(result, aField)
+  end
+  return result
+end
+
+local function getParams(aStr)
+  local rawKeyValues = splitStr(aStr, "%&")
+  local params = {}
+  for _, rawKeyValue in pairs(rawKeyValues) do
+    local keyValue = splitStr(rawKeyValue, "%=")
+    params[keyValue[1]] = keyValue[2]
+  end
+  return params
+end
+
 local function getOTP()
-  return findValueForKey('otpauth')
+  local result = {}
+  local otpUri = findValueForKey('otpauth')
+  local parts = splitStr(otpUri, '%?')
+  if #parts < 2 then
+    tellUser("Could not parse otpauth... do you need to wrap it?")
+    return result
+  end
+  local startTotp, _ = string.find(parts[2], 'totp')
+  if not startTotp then
+    tellUser("Not a TOTP otpauth uri... can not deal with this uri")
+    return result
+  end
+  local type = 'totp'
+  if params['secret'] then
+    result['secret'] = params['secret']
+  end
+  local cmd = "oathtool -b "
+  if params['algorithm'] then
+    -- ....
+  end
+end
+
+local function wrapOTP()
+  local otpValue = findValueForKey('otpauth')
+  local paramIndx, _ = string.find(otpValue, "%?")
+  if paramIndx then
+    tellUser("otpauth already wrapped")
+  else
+
+  end
 end
 
 local command = require "core.command"
@@ -167,18 +236,6 @@ local function checkGPG(...)
     end
   end
   return addMenu, core.active_view, ...
-end
-
-local style = require "core.style"
-
-local function tellUser(aMessage)
-  if core.status_view then
-    local s = style.log["INFO"]
-    core.status_view:show_message(s.icon, s.color, aMessage)
-  else
-    print(aMessage)
-  end
-  --print(aMessage)
 end
 
 local xselCopyCmd  = "/usr/bin/xsel -i -t 40000 -b"
@@ -256,6 +313,7 @@ command.add(checkGPG, {
 	  addKey('otpauth')
   end,
 	["pass:wrap-otp"] = function()
+	  wrapOTP()
   end
 })
 
