@@ -156,12 +156,30 @@ local function addKey(aKey)
   end
 end
 
+local function generatePassword()
+  local pwLength  = findValueForKey('pwLength')
+  local pwOptions = findValueForKey('pwOptions')
+  if not pwLength  then pwLength  = '20'   end
+  if not pwOptions then pwOptions = '-s' end
+  local fp = io.popen('pwgen ' .. pwOptions .. ' ' .. pwLength .. ' 1', "r")
+  if fp then
+    local aPassword = fp:read('L')
+    if aPassword then
+      doc():insert(1, 1, aPassword)
+    end
+    fp:close()
+    tellUser("Generated password " .. aPassword)
+  else
+    tellUser("Could not popen the pwgen command for reading")
+  end
+end
+
 local function getUserName()
-  return findValueForKey('UserName')
+  return findValueForKey('username')
 end
 
 local function getURL()
-  return findValueForKey('URL')
+  return findValueForKey('url')
 end
 
 -- see /usr/lib/password-store/extensions/otp.bash
@@ -266,10 +284,11 @@ command.add(checkGPG, {
 	["pass:copy-user-name"] = function()
 	  local aUserName = getUserName()
 	  if aUserName then
-      local fp = io.popen(xselCmd, "w")
+      local fp = io.popen(xselCopyCmd, "w")
       if fp then
         tellUser("Copied UserName")
         fp:write(aUserName)
+	      fp:close()
       else
         tellUser("Could not copy UserName to the clipboard")
       end
@@ -280,10 +299,11 @@ command.add(checkGPG, {
 	["pass:copy-url"] = function()
 	  local aURL = getURL()
 	  if aURL then
-      local fp = io.popen(xselCmd, "w")
+      local fp = io.popen(xselCopyCmd, "w")
       if fp then
         tellUser("Copied URL")
         fp:write(aURL)
+	      fp:close()
       else
         tellUser("Could not copy URL to the clipboard")
       end
@@ -299,11 +319,24 @@ command.add(checkGPG, {
       if fp then
         tellUser("Copied TOTP")
         fp:write(anOTP['secret'])
+	      fp:close()
       else
         tellUser("Could not copy the TOTP to the clipboard")
       end
     end
 	end,
+	["pass:clear-clipboard"] = function ()
+	  local fp = io.popen(xselClearCmd, "w")
+	  if fp then
+	    tellUser("Clipboard cleared")
+	    fp:close()
+	  else
+	    tellUser("Could not clear the clipboard")
+	  end
+	end,
+  ["pass:generate-password"] = function ()
+    generatePassword()
+  end,
 	["pass:add-password"] = function()
 	  addKey('password')
 	end,
@@ -326,6 +359,10 @@ local cmds = {
 	{ text = "Copy username", command = "pass:copy-user-name" },
 	{ text = "Copy URL",      command = "pass:copy-url" },
 	{ text = "Copy OTP",      command = "pass:copy-otp" },
+  ContextMenu.DIVIDER,
+	{ text = "Clear clipboard", command = "pass:clear-clipboard" },
+  ContextMenu.DIVIDER,
+	{ text = "Generate password", command = "pass:generate-password" },
   ContextMenu.DIVIDER,
 	{ text = "Add password", command = "pass:add-password" },
 	{ text = "Add username", command = "pass:add-user-name" },
