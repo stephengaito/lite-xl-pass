@@ -187,6 +187,7 @@ end
 -- see also the oathtool
 -- see also:
 --   https://github.com/google/google-authenticator/wiki/Key-Uri-Format
+--   https://github.com/remjey/luaotp/blob/master/src/otp.lua
 
 local function splitStr(aStr, aSep)
   if aSep == nil then aSep = "%s" end
@@ -237,9 +238,9 @@ local function getOTP()
   end
 
   if params['algorithm'] then
-    cmd = cmd .. '--totp=' ..  params['algorithm']
+    cmd = cmd .. ' --totp=' ..  params['algorithm']:upper()
   else
-    cmd = cmd .. '--totp'
+    cmd = cmd .. ' --totp'
   end
 
   result['cmd'] = cmd .. ' - '
@@ -315,6 +316,7 @@ command.add(checkGPG, {
 	  local anOTP = getOTP()
 	  if anOTP['secret'] and anOTP['cmd'] then
 	    local otpCmd = anOTP['cmd'] .. ' | ' .. xselCopyCmd
+	    -- print(otpCmd)
       local fp = io.popen(otpCmd, "w")
       if fp then
         tellUser("Copied TOTP")
