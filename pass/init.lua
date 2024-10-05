@@ -175,11 +175,11 @@ local function generatePassword()
 end
 
 local function getUserName()
-  return findValueForKey('username')
+  return findValueForKey('UserName')
 end
 
 local function getURL()
-  return findValueForKey('url')
+  return findValueForKey('URL')
 end
 
 -- see /usr/lib/password-store/extensions/otp.bash
@@ -343,10 +343,10 @@ command.add(checkGPG, {
 	  addKey('password')
 	end,
 	["pass:add-user-name"] = function()
-	  addKey('username')
+	  addKey('UserName')
 	end,
 	["pass:add-url"] = function()
-	  addKey('url')
+	  addKey('URL')
 	end,
 	["pass:add-otp"] = function()
 	  addKey('otpauth')
@@ -358,7 +358,7 @@ command.add(checkGPG, {
 local cmds = {
   ContextMenu.DIVIDER,
 	{ text = "Copy password", command = "pass:copy-password" },
-	{ text = "Copy username", command = "pass:copy-user-name" },
+	{ text = "Copy UserName", command = "pass:copy-user-name" },
 	{ text = "Copy URL",      command = "pass:copy-url" },
 	{ text = "Copy OTP",      command = "pass:copy-otp" },
   ContextMenu.DIVIDER,
@@ -367,7 +367,7 @@ local cmds = {
 	{ text = "Generate password", command = "pass:generate-password" },
   ContextMenu.DIVIDER,
 	{ text = "Add password", command = "pass:add-password" },
-	{ text = "Add username", command = "pass:add-user-name" },
+	{ text = "Add UserName", command = "pass:add-user-name" },
 	{ text = "Add URL",      command = "pass:add-url" },
 	{ text = "Add OTP",      command = "pass:add-otp" },
 }
