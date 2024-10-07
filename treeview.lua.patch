@@ -1,0 +1,36 @@
+--- a/treeview.lua	2024-10-07 10:06:07.491502398 +0100
++++ b/treeview.lua	2024-10-07 10:05:12.286306108 +0100
+@@ -611,7 +611,9 @@
+
+
+ menu:register(function() return core.active_view:is(TreeView) and treeitem() end, {
+-  { text = "Open in System", command = "treeview:open-in-system" },
++  { text = "Open in System",     command = "treeview:open-in-system" },
++  { text = "Copy path",          command = "treeview:copy-rel-path" },
++  { text = "Copy absolute path", command = "treeview:copy-abs-path" },
+   ContextMenu.DIVIDER
+ })
+
+@@ -893,6 +895,22 @@
+     })
+   end,
+
++  ["treeview:copy-rel-path"] = function(item)
++    local fp = io.popen("/usr/bin/xsel -i -b", "w")
++    if fp then
++      fp:write(item.filename)
++      fp:close()
++    end
++  end,
++
++  ["treeview:copy-abs-path"] = function(item)
++    local fp = io.popen("/usr/bin/xsel -i -b", "w")
++    if fp then
++      fp:write(item.abs_filename)
++      fp:close()
++    end
++  end,
++
+   ["treeview:open-in-system"] = function(item)
+     if PLATFORM == "Windows" then
+       system.exec(string.format("start \"\" %q", item.abs_filename))

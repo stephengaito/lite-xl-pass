@@ -1,18 +1,22 @@
 # Things To Do
 
-1. "patch" the `main.c` to init a pass-core (instead of the standard core
-   init). Our pass-core pulls in our parallel doc code to re-implement the
-   open-file and save-file code to work with pass entries.
+1. **consider:** Wrap whole lua project in to one elf executable
+   (including Lua libraries and *.so files).... Is this possible?
 
-   To do this we need to expand the "plugins" directories to allow
-   multiple plugins directories.
+   see:
+     - [pocomane/glua: Embed lua runtime and script in a single executable](https://github.com/pocomane/glua)
+     - [(lua) squish: Summary](https://code.matthewwild.co.uk/squish)
+     - [wxlua/wxLua/util/bin2c/bin2c.lua at master · pkulchenko/wxlua](https://github.com/pkulchenko/wxlua/blob/master/wxLua/util/bin2c/bin2c.lua)
+     - [Luiz Henrique de Figueiredo: Libraries and tools for Lua](http://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/#srlua)
+       - http://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/ar/srlua-102.tar.gz
 
-2. We need to implement an opt-entry and place this new function in the
-   toolbar.
+   also:
+     - [jirutka/luapak: Easily build a standalone executable for any Lua program](https://github.com/jirutka/luapak)
+     - [PhysicsFS](https://icculus.org/physfs/)
 
-3. Add new tools to display different parts of a pass entry.
+## Resources and Ideas
 
-## xsel and xclip
+### xsel and xclip
 
 The command
 ```
