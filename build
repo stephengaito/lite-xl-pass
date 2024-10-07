@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# This bash script automates the download, patching and building of the
+# Lite-XL-Pass tool.
+
+#####################
+# System requirements
+#
+# git, meson
+
+liteXlSrc=lite-xl-src
+
+rm -rf $liteXlSrc
+
+git clone --depth 1 https://github.com/lite-xl/lite-xl.git $liteXlSrc
+rm -rf $liteXlSrc/.git
+
+rm -rf $liteXlSrc/data/plugins/workspace.lua
+
+cp -R pass $liteXlSrc/data
+
+cp plugins/*.lua $liteXlSrc/data/plugins
+
+cd $liteXlSrc
+
+cp data/core/start.lua data/pass
+
+cd src
+
+patch -p1 < ../../main.patch
+
+cd ../data/pass
+
+cp ../core/start.lua .
+
+patch -p1 < ../../../start.patch
+
+cd ../plugins
+
+patch -p1 < ../../../treeview.lua.patch
+
+cd ../..
+
+patch -p1 < ../meson.build.patch
+
+bash build-packages.sh --prefix $HOME/.local/lite-xl-pass --release
+
+cd build-linux-x86_64
+
+rm -rf $HOME/.local/lite-xl-pass
+
+meson install
+
+cd $HOME/.local/bin
+
+ln -sf ../lite-xl-pass/bin/lite-xl lite-xl-pass

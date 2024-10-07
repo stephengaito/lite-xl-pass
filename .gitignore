@@ -2,7 +2,6 @@
 error.txt
 lite-xl-src
 tmp
-build
 
 # Compiled Lua sources
 luac.out
