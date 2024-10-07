@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sudo cp *.bash /usr/lib/password-store/extensions
