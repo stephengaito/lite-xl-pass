@@ -23,7 +23,8 @@ rm -rf $liteXlSrc/data/plugins/workspace.lua
 
 cp -R pass $liteXlSrc/data
 
-cp plugins/*.lua $liteXlSrc/data/plugins
+# We no longer seem to have these plugins :$
+#cp plugins/*.lua $liteXlSrc/data/plugins
 
 cd $liteXlSrc
 
@@ -47,20 +48,21 @@ cd ../..
 
 patch -p1 < ../meson.build.patch
 
-bash build-packages.sh --prefix $HOME/.local/lite-xl-pass --release
+# old ...
+#bash build-packages.sh --prefix $HOME/.local/lite-xl-pass --release
 
-if [ -d build-linux-aarch64 ]; then
-  buildDir=build-linux-aarch64
-elif [ -d build-linux-x86_64 ]; then
-  buildDir=build-linux-x86_64
-fi
+# new ...
+./scripts/build.sh --addons --portable --debug --prefix $HOME/.local/lite-xl-pass -b build
 
-cd $buildDir
+cd build
 
 rm -rf $HOME/.local/lite-xl-pass
 
-meson install
+cp -R lite-xl $HOME/.local/lite-xl-pass
+
+mkdir -p $HOME/.local/bin
 
 cd $HOME/.local/bin
 
-ln -sf ../lite-xl-pass/bin/lite-xl lite-xl-pass
+ln -sf ../lite-xl-pass/lite-xl lite-xl-pass
+ln -sf ../lite-xl-pass/lite-xl pass-gui
